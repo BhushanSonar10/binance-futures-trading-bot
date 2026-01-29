@@ -5,6 +5,7 @@ A Python trading bot for placing orders on Binance Futures Testnet (USDT-M) with
 ## Features
 
 - ✅ Place Market and Limit orders on Binance Futures Testnet
+- ✅ Place Stop-Limit orders (STOP_MARKET and STOP) - **Bonus Feature**
 - ✅ Support for both BUY and SELL sides
 - ✅ CLI interface with argument validation
 - ✅ Comprehensive logging to files
@@ -31,8 +32,8 @@ A Python trading bot for placing orders on Binance Futures Testnet (USDT-M) with
 
 ```bash
 # Clone the repository
-git clone <repository-url>
-cd trading-bot
+git clone https://github.com/BhushanSonar10/binance-futures-trading-bot.git
+cd binance-futures-trading-bot
 
 # Install dependencies
 pip install -r requirements.txt
@@ -56,28 +57,50 @@ $env:BINANCE_API_SECRET="your_api_secret_here"
 
 ```bash
 # Show help
-python cli.py --help
+python trading_bot/cli.py --help
 
 # Check account information
-python cli.py --account-info
+python trading_bot/cli.py --account-info
 
 # Place a Market BUY order
-python cli.py --symbol BTCUSDT --side BUY --type MARKET --quantity 0.001
+python trading_bot/cli.py --symbol BTCUSDT --side BUY --type MARKET --quantity 0.001
 
 # Place a Limit SELL order
-python cli.py --symbol ETHUSDT --side SELL --type LIMIT --quantity 0.01 --price 2500.50
+python trading_bot/cli.py --symbol ETHUSDT --side SELL --type LIMIT --quantity 0.01 --price 2500.50
+
+# Place a Stop Market order (stop loss)
+python trading_bot/cli.py --symbol BTCUSDT --side SELL --type STOP_MARKET --quantity 0.001 --stop-price 45000
+
+# Place a Stop Limit order (stop loss with limit price)
+python trading_bot/cli.py --symbol BTCUSDT --side SELL --type STOP --quantity 0.001 --price 44500 --stop-price 45000
+```
+
+### Demo Mode (No API Required)
+
+```bash
+# Run demo to see bot functionality without API credentials
+python demo.py
 ```
 
 ### Examples
 
 #### Market Order Example
 ```bash
-python cli.py --symbol BTCUSDT --side BUY --type MARKET --quantity 0.001
+python trading_bot/cli.py --symbol BTCUSDT --side BUY --type MARKET --quantity 0.001
 ```
 
 #### Limit Order Example
 ```bash
-python cli.py --symbol ETHUSDT --side SELL --type LIMIT --quantity 0.01 --price 2500.50
+python trading_bot/cli.py --symbol ETHUSDT --side SELL --type LIMIT --quantity 0.01 --price 2500.50
+```
+
+#### Stop-Limit Order Examples (Bonus Feature)
+```bash
+# Stop Market order (executes at market price when stop price is hit)
+python trading_bot/cli.py --symbol BTCUSDT --side SELL --type STOP_MARKET --quantity 0.001 --stop-price 45000
+
+# Stop Limit order (places limit order when stop price is hit)
+python trading_bot/cli.py --symbol BTCUSDT --side SELL --type STOP --quantity 0.001 --price 44500 --stop-price 45000
 ```
 
 ## Project Structure
@@ -119,9 +142,10 @@ Input validation includes:
 
 - Symbol format validation (e.g., BTCUSDT)
 - Order side validation (BUY/SELL)
-- Order type validation (MARKET/LIMIT)
+- Order type validation (MARKET/LIMIT/STOP_MARKET/STOP)
 - Quantity validation (positive numbers)
-- Price validation (positive numbers, required for LIMIT orders)
+- Price validation (positive numbers, required for LIMIT and STOP orders)
+- Stop price validation (positive numbers, required for STOP_MARKET and STOP orders)
 
 ## API Endpoints Used
 
@@ -149,6 +173,7 @@ Input validation includes:
 The bot has been tested with:
 - Market orders (BUY/SELL)
 - Limit orders (BUY/SELL)
+- Stop-Limit orders (STOP_MARKET/STOP)
 - Invalid input handling
 - API error scenarios
 - Network failure scenarios
