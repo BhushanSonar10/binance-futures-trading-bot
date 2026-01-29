@@ -5,7 +5,7 @@ A Python trading bot for placing orders on Binance Futures Testnet (USDT-M) with
 ## Features
 
 - ✅ Place Market and Limit orders on Binance Futures Testnet
-- ✅ Place Stop-Limit orders (STOP_MARKET and STOP) - **Bonus Feature**
+- ✅ Place Stop-Limit orders (STOP_MARKET and STOP) 
 - ✅ Support for both BUY and SELL sides
 - ✅ CLI interface with argument validation
 - ✅ Comprehensive logging to files
