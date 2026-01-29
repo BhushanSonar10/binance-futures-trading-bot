@@ -1,0 +1,11 @@
+# After creating your GitHub repository, run these commands:
+
+# Add your GitHub repository as remote (replace 'yourusername' with your GitHub username)
+git remote add origin https://github.com/yourusername/binance-futures-trading-bot.git
+
+# Push to GitHub
+git branch -M main
+git push -u origin main
+
+# Alternative if you prefer master branch
+# git push -u origin master
