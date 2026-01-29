@@ -80,7 +80,7 @@ class BinanceFuturesClient:
                 return symbol_info
         return None
     
-    def place_order(self, symbol: str, side: str, order_type: str, quantity: float, price: Optional[float] = None) -> Dict[str, Any]:
+    def place_order(self, symbol: str, side: str, order_type: str, quantity: float, price: Optional[float] = None, stop_price: Optional[float] = None) -> Dict[str, Any]:
         """Place an order on Binance Futures."""
         params = {
             'symbol': symbol.upper(),
@@ -94,5 +94,17 @@ class BinanceFuturesClient:
                 raise ValueError("Price is required for LIMIT orders")
             params['price'] = str(price)
             params['timeInForce'] = 'GTC'  # Good Till Cancelled
+        
+        elif order_type.upper() == 'STOP_MARKET':
+            if stop_price is None:
+                raise ValueError("Stop price is required for STOP_MARKET orders")
+            params['stopPrice'] = str(stop_price)
+        
+        elif order_type.upper() == 'STOP':
+            if price is None or stop_price is None:
+                raise ValueError("Both price and stop price are required for STOP orders")
+            params['price'] = str(price)
+            params['stopPrice'] = str(stop_price)
+            params['timeInForce'] = 'GTC'
         
         return self._make_request('POST', '/fapi/v1/order', params, signed=True)

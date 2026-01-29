@@ -47,6 +47,12 @@ Examples:
   # Limit sell order
   python cli.py --symbol ETHUSDT --side SELL --type LIMIT --quantity 0.01 --price 2500.50
 
+  # Stop Market order (stop loss)
+  python cli.py --symbol BTCUSDT --side SELL --type STOP_MARKET --quantity 0.001 --stop-price 45000
+
+  # Stop Limit order (stop loss with limit price)
+  python cli.py --symbol BTCUSDT --side SELL --type STOP --quantity 0.001 --price 44500 --stop-price 45000
+
   # Check account info
   python cli.py --account-info
         """
@@ -54,9 +60,10 @@ Examples:
     
     parser.add_argument('--symbol', type=str, help='Trading symbol (e.g., BTCUSDT)')
     parser.add_argument('--side', choices=['BUY', 'SELL'], help='Order side')
-    parser.add_argument('--type', choices=['MARKET', 'LIMIT'], help='Order type')
+    parser.add_argument('--type', choices=['MARKET', 'LIMIT', 'STOP_MARKET', 'STOP'], help='Order type')
     parser.add_argument('--quantity', type=str, help='Order quantity')
-    parser.add_argument('--price', type=str, help='Order price (required for LIMIT orders)')
+    parser.add_argument('--price', type=str, help='Order price (required for LIMIT and STOP orders)')
+    parser.add_argument('--stop-price', type=str, help='Stop price (required for STOP_MARKET and STOP orders)')
     parser.add_argument('--account-info', action='store_true', help='Show account information')
     
     return parser
@@ -78,15 +85,26 @@ def validate_args(args) -> bool:
         print(f"❌ Error: Invalid quantity '{args.quantity}'. Must be a positive number.")
         return False
     
-    # Validate price for LIMIT orders
-    if args.type == 'LIMIT':
+    # Validate price for LIMIT and STOP orders
+    if args.type in ['LIMIT', 'STOP']:
         if not args.price:
-            print("❌ Error: --price is required for LIMIT orders!")
+            print(f"❌ Error: --price is required for {args.type} orders!")
             return False
         
         price = validate_price(args.price)
         if price is None:
             print(f"❌ Error: Invalid price '{args.price}'. Must be a positive number.")
+            return False
+    
+    # Validate stop price for STOP_MARKET and STOP orders
+    if args.type in ['STOP_MARKET', 'STOP']:
+        if not getattr(args, 'stop_price', None):
+            print(f"❌ Error: --stop-price is required for {args.type} orders!")
+            return False
+        
+        stop_price = validate_price(getattr(args, 'stop_price'))
+        if stop_price is None:
+            print(f"❌ Error: Invalid stop price '{getattr(args, 'stop_price')}'. Must be a positive number.")
             return False
     
     return True
@@ -131,9 +149,10 @@ def main():
             # Place order
             quantity = validate_quantity(args.quantity)
             price = validate_price(args.price) if args.price else None
+            stop_price = validate_price(getattr(args, 'stop_price', None)) if getattr(args, 'stop_price', None) else None
             
             # Print order summary
-            order_manager.print_order_summary(args.symbol, args.side, args.type, quantity, price)
+            order_manager.print_order_summary(args.symbol, args.side, args.type, quantity, price, stop_price)
             
             # Confirm order placement
             confirm = input("\nDo you want to place this order? (y/N): ").strip().lower()
@@ -143,7 +162,7 @@ def main():
             
             # Place the order
             print("\nPlacing order...")
-            response = order_manager.place_order(args.symbol, args.side, args.type, quantity, price)
+            response = order_manager.place_order(args.symbol, args.side, args.type, quantity, price, stop_price)
             
             # Print response
             order_manager.print_order_response(response)

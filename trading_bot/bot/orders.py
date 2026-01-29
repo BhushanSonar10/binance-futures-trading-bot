@@ -11,7 +11,7 @@ class OrderManager:
     def __init__(self, client: BinanceFuturesClient):
         self.client = client
     
-    def validate_order_params(self, symbol: str, side: str, order_type: str, quantity: float, price: Optional[float] = None) -> bool:
+    def validate_order_params(self, symbol: str, side: str, order_type: str, quantity: float, price: Optional[float] = None, stop_price: Optional[float] = None) -> bool:
         """Validate order parameters."""
         if not validate_symbol(symbol):
             logger.error(f"Invalid symbol: {symbol}")
@@ -22,7 +22,7 @@ class OrderManager:
             return False
         
         if not validate_order_type(order_type):
-            logger.error(f"Invalid order type: {order_type}. Must be MARKET or LIMIT")
+            logger.error(f"Invalid order type: {order_type}. Must be MARKET, LIMIT, STOP_MARKET, or STOP")
             return False
         
         if quantity <= 0:
@@ -33,14 +33,26 @@ class OrderManager:
             logger.error(f"Invalid price for LIMIT order: {price}. Must be positive")
             return False
         
+        if order_type.upper() == 'STOP_MARKET' and (stop_price is None or stop_price <= 0):
+            logger.error(f"Invalid stop price for STOP_MARKET order: {stop_price}. Must be positive")
+            return False
+        
+        if order_type.upper() == 'STOP':
+            if price is None or price <= 0:
+                logger.error(f"Invalid price for STOP order: {price}. Must be positive")
+                return False
+            if stop_price is None or stop_price <= 0:
+                logger.error(f"Invalid stop price for STOP order: {stop_price}. Must be positive")
+                return False
+        
         return True
     
-    def place_order(self, symbol: str, side: str, order_type: str, quantity: float, price: Optional[float] = None) -> Dict[str, Any]:
+    def place_order(self, symbol: str, side: str, order_type: str, quantity: float, price: Optional[float] = None, stop_price: Optional[float] = None) -> Dict[str, Any]:
         """Place an order with validation."""
         logger.info(f"Attempting to place {order_type} {side} order for {quantity} {symbol}")
         
         # Validate parameters
-        if not self.validate_order_params(symbol, side, order_type, quantity, price):
+        if not self.validate_order_params(symbol, side, order_type, quantity, price, stop_price):
             raise ValueError("Invalid order parameters")
         
         # Check symbol exists on exchange
@@ -52,14 +64,14 @@ class OrderManager:
         
         # Place the order
         try:
-            result = self.client.place_order(symbol, side, order_type, quantity, price)
+            result = self.client.place_order(symbol, side, order_type, quantity, price, stop_price)
             logger.info(f"Order placed successfully: {result}")
             return result
         except Exception as e:
             logger.error(f"Failed to place order: {e}")
             raise
     
-    def print_order_summary(self, symbol: str, side: str, order_type: str, quantity: float, price: Optional[float] = None):
+    def print_order_summary(self, symbol: str, side: str, order_type: str, quantity: float, price: Optional[float] = None, stop_price: Optional[float] = None):
         """Print order request summary."""
         print("\n" + "="*50)
         print("ORDER REQUEST SUMMARY")
@@ -70,6 +82,8 @@ class OrderManager:
         print(f"Quantity: {quantity}")
         if price is not None:
             print(f"Price: {price}")
+        if stop_price is not None:
+            print(f"Stop Price: {stop_price}")
         print("="*50)
     
     def print_order_response(self, response: Dict[str, Any]):

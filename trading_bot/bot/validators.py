@@ -16,7 +16,7 @@ def validate_side(side: str) -> bool:
 
 def validate_order_type(order_type: str) -> bool:
     """Validate order type."""
-    return order_type.upper() in ['MARKET', 'LIMIT']
+    return order_type.upper() in ['MARKET', 'LIMIT', 'STOP_MARKET', 'STOP']
 
 def validate_quantity(quantity: str) -> Optional[float]:
     """Validate and convert quantity to float."""
